@@ -1,0 +1,5 @@
+node_modules
+.vscode
+src/puzzles/*
+src/public/cards/*
+!src/public/cards/empty.png

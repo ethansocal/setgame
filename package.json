@@ -1,0 +1,29 @@
+{
+  "name": "setgame",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/index.ts",
+    "images": "ts-node scripts/scrapeImages.ts",
+    "puzzles": "ts-node scripts/createPuzzles.ts 10",
+    "tailwindwatch": "npx tailwind --watch -i src/public/build.css --output src/public/style.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/request": "^2.48.8",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "express": "^5.0.0-alpha.8",
+    "request": "^2.88.2",
+    "tailwindcss": "^3.0.18",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.5"
+  }
+}
