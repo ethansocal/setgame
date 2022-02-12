@@ -13,8 +13,12 @@ html {
     -moz-osx-font-smoothing: grayscale;
 }
 
+nav a {
+    @apply hover:text-blue-600 transition-colors motion-safe:duration-200;
+}
+
 .card {
-    @apply border-2 border-gray-500 rounded-lg shadow-lg overflow-hidden cursor-pointer m-auto;
+    @apply border-2 border-gray-500 rounded-lg shadow-lg overflow-hidden cursor-pointer m-auto transition-all motion-safe:duration-200;
 }
 
 .selected {

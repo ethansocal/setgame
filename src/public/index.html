@@ -7,12 +7,17 @@
         <link rel="stylesheet" href="./style.css" />
         <title>Set Game</title>
     </head>
-    <body class="bg-slate-300">
-        <h1
-            class="m-auto text-center text-[80px] tracking-[0.022em] underline decoration-sky-900 decoration-solid text-sky-900"
-        >
-            Set Game!
-        </h1>
+    <body class="bg-sky-200 text-cyan-900 dark:bg-cyan-900 dark:text-sky-400">
+        <header class="flex m-auto shadow-lg">
+            <h1 class="text-center text-[80px] tracking-[0.022em] m-3">
+                Set Game!
+            </h1>
+            <nav
+                class="text-[40px] underline decoration-current decoration-solid"
+            >
+                <a id="new-game" href="#"> New Puzzle</a>
+            </nav>
+        </header>
         <div class="notification hidden" id="notification"></div>
         <div
             class="flex m-auto flex-col xl:flex-row gap-3 place-content-center"

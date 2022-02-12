@@ -8,7 +8,8 @@
     "start": "ts-node src/index.ts",
     "images": "ts-node scripts/scrapeImages.ts",
     "puzzles": "ts-node scripts/createPuzzles.ts 10",
-    "tailwindwatch": "npx tailwind --watch -i src/public/build.css --output src/public/style.css"
+    "tailwindwatch": "npx tailwind --watch -i src/public/build.css --output src/public/style.css",
+    "lint": "eslint src"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +17,16 @@
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/request": "^2.48.8",
+    "@typescript-eslint/eslint-plugin": "^5.11.0",
+    "@typescript-eslint/parser": "^5.11.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "install": "^0.13.0",
     "nodemon": "^2.0.15",
+    "npm": "^8.4.1",
     "prettier": "^2.5.1"
   },
   "dependencies": {

@@ -1,11 +1,22 @@
 import express from "express";
 import fs from "fs";
 import http from "http";
-import { checkSet } from "./setGame";
+import { checkSet, indexOfList } from "./setGame";
 
 const app = express();
 const PORT = process.argv[2] || 3000;
 
+app.use((req, res, next) => {
+    res.header(
+        "Access-Control-Allow-Origin",
+        "http://setgame.ethansocal.codes"
+    );
+    res.header(
+        "Content-Security-Policy",
+        "default-src 'self'; style-src *; font-src *;"
+    );
+    next();
+});
 app.use(express.static(__dirname + "/public"));
 app.use(express.json());
 
@@ -18,11 +29,11 @@ app.get("/api/puzzles/", (req, res) => {
 });
 
 app.get("/api/puzzles/random", (req, res) => {
-    let puzzles = fs.readdirSync(__dirname + "/puzzles").filter((x) => {
+    const puzzles = fs.readdirSync(__dirname + "/puzzles").filter((x) => {
         return x.startsWith("puzzle-");
     });
-    let random = Math.floor(Math.random() * puzzles.length);
-    let puzzle = JSON.parse(
+    const random = Math.floor(Math.random() * puzzles.length);
+    const puzzle = JSON.parse(
         fs.readFileSync(__dirname + "/puzzles/" + puzzles[random]).toString()
     );
     delete puzzle.solutions;
@@ -31,25 +42,32 @@ app.get("/api/puzzles/random", (req, res) => {
 });
 
 app.post("/api/puzzles/:id/solution", (req, res) => {
-    let id = req.params.id;
-    let solutions = JSON.parse(
+    const id = req.params.id;
+    const solutions: number[][] = JSON.parse(
         fs.readFileSync(__dirname + "/puzzles/" + id + ".json").toString()
     ).solutions;
-    let userSolutions = req.body;
+    const length = solutions.length;
+    const userSolutions: number[][] = req.body;
     if (userSolutions.length !== 6) {
         return res.status(400).send({ error: "Invalid solution length" });
     }
-    for (let i = 0; i < userSolutions; i++) {
-        // TODO: Check if solution is valid
+    for (let i = 0; i < userSolutions.length; i++) {
+        try {
+            solutions.splice(indexOfList(solutions, userSolutions[i]), 1);
+        } catch {
+            return res.send({ valid: false });
+        }
+    }
+    if (solutions.length !== length - 6) {
+        return res.send({ valid: true });
+    } else {
+        return res.send({ valid: false });
     }
 });
 
 app.get("/api/puzzles/:id", (req, res) => {
-    let id = req.params.id;
-    let puzzle: { id: string; solutions: undefined | string } = {
-        id: "",
-        solutions: "",
-    };
+    const id = req.params.id;
+    let puzzle: any = undefined;
     try {
         puzzle = JSON.parse(
             fs.readFileSync(__dirname + "/puzzles/" + id + ".json").toString()
@@ -71,7 +89,7 @@ app.get("/api/puzzles/:id", (req, res) => {
 });
 
 app.post("/api/checkset", (req, res) => {
-    let set = req.body;
+    const set = req.body;
     if (set.length !== 3) {
         return res.status(400).send({ error: "Invalid set length" });
     }
@@ -86,6 +104,6 @@ app.post("/api/checkset", (req, res) => {
     });
 });
 
-http.createServer(app).listen(3000, () => {
-    console.log("http://localhost:3000");
+http.createServer(app).listen(PORT, () => {
+    console.log(`http://localhost:${PORT}`);
 });

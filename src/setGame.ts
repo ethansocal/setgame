@@ -49,7 +49,7 @@ function checkSet(set: number[]): [boolean, boolean, boolean, boolean] {
 }
 
 function solvePuzzle(puzzle: number[]): number[][] {
-    let solutions: number[][] = [];
+    const solutions: number[][] = [];
     for (let i = 0; i < puzzle.length; i++) {
         for (let j = 0; j < puzzle.length; j++) {
             if (i === j) {
@@ -108,6 +108,16 @@ function generatePuzzle(name: string | null | undefined = undefined): void {
     savePuzzle(name || "puzzle-" + generateNumber(), puzzle, solutions);
 }
 
+function indexOfList(list: number[][], value: number[]): number {
+    let len = list.length;
+    for (let i = 0; i < len; i++) {
+        if (list[i].every((x, j) => x === value[j])) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 export {
     savePuzzle,
     allSame,
@@ -115,4 +125,5 @@ export {
     allDifferent,
     solvePuzzle,
     checkSet,
+    indexOfList,
 };
