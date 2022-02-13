@@ -30,7 +30,8 @@
     "install": "^0.13.0",
     "nodemon": "^2.0.15",
     "npm": "^8.4.1",
-    "prettier": "^2.5.1"
+    "prettier": "^2.5.1",
+    "ansi-regex": "^5.0.1"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
