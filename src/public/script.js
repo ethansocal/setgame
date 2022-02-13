@@ -58,6 +58,16 @@ function updateFound() {
     }
 }
 
+function updateClicked() {
+    for (let i = 0; i < 12; i++) {
+        if (selected.includes(i)) {
+            document.querySelector(`#card${i}`).classList.add("selected");
+        } else {
+            document.querySelector(`#card${i}`).classList.remove("selected");
+        }
+    }
+}
+
 function clickCard(cardId) {
     let card = document.querySelector(`#card${cardId}`);
     if (card.classList.contains("selected")) {
@@ -70,21 +80,20 @@ function clickCard(cardId) {
     if (selected.length === 3) {
         if (checkInside(selected.sort(), found)) {
             setTimeout(() => {
-                for (let i = 0; i < 12; i++) {
-                    document
-                        .querySelector(`#card${i}`)
-                        .classList.remove("selected");
-                    selected = [];
-                }
+                selected = [];
+                updateClicked();
             }, 500);
+            console.log("Set already found");
             return sendNotification("You already found this set.");
         }
+        console.log("Checking set...");
         checkSet(selected).then((result) => {
             let message = "";
 
             if (result.valid) {
                 message = "You found a set!";
                 found.push(selected.sort());
+                localStorage.setItem("found", JSON.stringify(found));
                 updateFound();
             } else {
                 let problems = [];
@@ -105,14 +114,11 @@ function clickCard(cardId) {
                     listToString(problems) +
                     ".";
             }
+            console.log(message);
             sendNotification(message);
             setTimeout(() => {
-                for (let i = 0; i < 12; i++) {
-                    document
-                        .querySelector(`#card${i}`)
-                        .classList.remove("selected");
-                    selected = [];
-                }
+                selected = [];
+                updateClicked();
             }, 500);
         });
     }
@@ -120,24 +126,34 @@ function clickCard(cardId) {
 
 document.querySelectorAll(".card").forEach((card, num) => {
     card.addEventListener("click", () => {
+        console.log("Card " + num + " clicked");
         clickCard(num);
     });
 });
 
 document.querySelector("#new-game").addEventListener("click", () => {
+    console.log("New game started");
     fetch("/api/newgame", { method: "POST" }).then((result) => {
         location.reload();
+        localStorage.setItem("found", "[]");
     });
 });
 
-document.addEventListener("load", () => {
-    if (localStorage.getItem("found") !== null) {
-        let tempFound = JSON.parse(localStorage.getItem("found"));
-        for (let i = 0; i < tempFound.length; i++) {
-            checkSet(tempFound[i]).then((result) => {
-                found.push(i);
-                updateFound();
-            });
+window.addEventListener(
+    "load",
+    () => {
+        console.log("Loading previous found sets...");
+        if (localStorage.getItem("found") !== null) {
+            let tempFound = JSON.parse(localStorage.getItem("found"));
+            for (let i = 0; i < tempFound.length; i++) {
+                checkSet(tempFound[i]).then((result) => {
+                    if (result["valid"]) {
+                        found.push(tempFound[i]);
+                        updateFound();
+                    }
+                });
+            }
         }
-    }
-});
+    },
+    false
+);
