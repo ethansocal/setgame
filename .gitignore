@@ -3,4 +3,4 @@ node_modules
 src/puzzles/*
 src/cards/*
 !src/cards/empty.png
-key.pub
+*.key

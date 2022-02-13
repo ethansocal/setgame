@@ -1,7 +1,6 @@
 import express from "express";
 import fs from "fs";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken";
 import http from "http";
 import { checkSet, generatePuzzle } from "./setGame";
 
@@ -9,13 +8,10 @@ const app = express();
 const PORT = process.argv[2] || 3000;
 
 function generateToken() {
-    return jwt.sign(
-        {
-            puzzle: generatePuzzle(),
-            time: Date.now(),
-        },
-        fs.readFileSync(__dirname + "/../key.pub").toString()
-    );
+    return JSON.stringify({
+        puzzle: generatePuzzle(),
+        time: Date.now(),
+    });
 }
 
 app.use((req, res, next) => {
@@ -32,16 +28,20 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname + "/public"));
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser(fs.readFileSync(__dirname + "/../cookie.key").toString()));
 app.use((req, res, next) => {
     let token = undefined;
-    if (req.cookies.token === undefined) {
-        token = res.cookie("token", generateToken());
+    if (req.signedCookies.token === undefined) {
+        token = generateToken();
+        res.cookie("token", token, { signed: true });
+        console.log("generated new token");
     }
-    req.data = jwt.verify(
-        token || req.cookies.token,
-        fs.readFileSync(__dirname + "/../key.pub").toString()
-    );
+    try {
+        req.data = JSON.parse(token || req.signedCookies.token);
+    } catch (e) {
+        res.cookie("token", generateToken(), { signed: true });
+        req.data = JSON.parse(token || req.signedCookies.token);
+    }
     next();
 });
 
@@ -55,7 +55,7 @@ app.use("/card/:id.png", (req, res) => {
 });
 
 app.post("/api/newgame", (req, res) => {
-    res.cookie("token", generateToken());
+    res.cookie("token", generateToken(), { signed: true });
     res.sendStatus(200);
 });
 

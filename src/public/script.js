@@ -129,3 +129,15 @@ document.querySelector("#new-game").addEventListener("click", () => {
         location.reload();
     });
 });
+
+document.addEventListener("load", () => {
+    if (localStorage.getItem("found") !== null) {
+        let tempFound = JSON.parse(localStorage.getItem("found"));
+        for (let i = 0; i < tempFound.length; i++) {
+            checkSet(tempFound[i]).then((result) => {
+                found.push(i);
+                updateFound();
+            });
+        }
+    }
+});

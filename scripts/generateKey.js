@@ -6,5 +6,5 @@ function generateKey(keyLength) {
 }
 
 if (require.main === module) {
-    fs.writeFileSync(__dirname + "/../key.pub", generateKey(64));
+    fs.writeFileSync(__dirname + "/../cookie.key", generateKey(64));
 }
