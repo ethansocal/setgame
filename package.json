@@ -6,16 +6,19 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
-    "images": "ts-node scripts/scrapeImages.ts",
-    "puzzles": "ts-node scripts/createPuzzles.ts 10",
-    "tailwindwatch": "npx tailwind --watch -i src/public/build.css --output src/public/style.css",
-    "lint": "eslint src"
+    "images": "node scripts/scrapeImages.ts",
+    "puzzles": "node scripts/createPuzzles.ts 10",
+    "tailwindwatch": "npx tailwind --watch -i src/build.css --output src/public/style.css",
+    "lint": "eslint src",
+    "dev": "nodemon"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.13",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/request": "^2.48.8",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
@@ -30,7 +33,9 @@
     "prettier": "^2.5.1"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.6",
     "express": "^5.0.0-alpha.8",
+    "jsonwebtoken": "^8.5.1",
     "request": "^2.88.2",
     "tailwindcss": "^3.0.18",
     "ts-node": "^10.4.0",

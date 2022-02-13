@@ -1,5 +1,6 @@
 node_modules
 .vscode
 src/puzzles/*
-src/public/cards/*
-!src/public/cards/empty.png
+src/cards/*
+!src/cards/empty.png
+key.pub

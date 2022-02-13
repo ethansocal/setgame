@@ -86,7 +86,7 @@ function generateNumber(): string {
     return num;
 }
 
-function generatePuzzle(name: string | null | undefined = undefined): void {
+function generatePuzzle(name: string | null | undefined = undefined): number[] {
     let valid = false;
     let cards: number[] = [];
     let puzzle: number[] = [];
@@ -105,7 +105,7 @@ function generatePuzzle(name: string | null | undefined = undefined): void {
         solutions = solvePuzzle(puzzle);
         valid = solutions.length > 5;
     }
-    savePuzzle(name || "puzzle-" + generateNumber(), puzzle, solutions);
+    return puzzle;
 }
 
 function indexOfList(list: number[][], value: number[]): number {

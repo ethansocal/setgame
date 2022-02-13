@@ -1,10 +1,22 @@
 import express from "express";
 import fs from "fs";
+import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
 import http from "http";
-import { checkSet, indexOfList } from "./setGame";
+import { checkSet, generatePuzzle } from "./setGame";
 
 const app = express();
 const PORT = process.argv[2] || 3000;
+
+function generateToken() {
+    return jwt.sign(
+        {
+            puzzle: generatePuzzle(),
+            time: Date.now(),
+        },
+        fs.readFileSync(__dirname + "/../key.pub").toString()
+    );
+}
 
 app.use((req, res, next) => {
     res.header(
@@ -17,79 +29,43 @@ app.use((req, res, next) => {
     );
     next();
 });
+
 app.use(express.static(__dirname + "/public"));
 app.use(express.json());
-
-app.get("/api/puzzles/", (req, res) => {
-    let puzzles = fs.readdirSync(__dirname + "/puzzles");
-    puzzles = puzzles.map((x) => {
-        return x.slice(7, x.length - 5);
-    });
-    res.send(puzzles);
-});
-
-app.get("/api/puzzles/random", (req, res) => {
-    const puzzles = fs.readdirSync(__dirname + "/puzzles").filter((x) => {
-        return x.startsWith("puzzle-");
-    });
-    const random = Math.floor(Math.random() * puzzles.length);
-    const puzzle = JSON.parse(
-        fs.readFileSync(__dirname + "/puzzles/" + puzzles[random]).toString()
+app.use(cookieParser());
+app.use((req, res, next) => {
+    let token = undefined;
+    if (req.cookies.token === undefined) {
+        token = res.cookie("token", generateToken());
+    }
+    req.data = jwt.verify(
+        token || req.cookies.token,
+        fs.readFileSync(__dirname + "/../key.pub").toString()
     );
-    delete puzzle.solutions;
-    puzzle.id = puzzles[random].slice(0, puzzles[random].length - 5);
-    res.send(puzzle);
+    next();
 });
 
-app.post("/api/puzzles/:id/solution", (req, res) => {
-    const id = req.params.id;
-    const solutions: number[][] = JSON.parse(
-        fs.readFileSync(__dirname + "/puzzles/" + id + ".json").toString()
-    ).solutions;
-    const length = solutions.length;
-    const userSolutions: number[][] = req.body;
-    if (userSolutions.length !== 6) {
-        return res.status(400).send({ error: "Invalid solution length" });
+app.use("/card/:id.png", (req, res) => {
+    if (req.params.id === "empty") {
+        return res.sendFile(__dirname + "/cards/empty.png");
     }
-    for (let i = 0; i < userSolutions.length; i++) {
-        try {
-            solutions.splice(indexOfList(solutions, userSolutions[i]), 1);
-        } catch {
-            return res.send({ valid: false });
-        }
-    }
-    if (solutions.length !== length - 6) {
-        return res.send({ valid: true });
-    } else {
-        return res.send({ valid: false });
-    }
+    res.sendFile(
+        __dirname + `/cards/${req.data.puzzle[parseInt(req.params.id)]}.png`
+    );
 });
 
-app.get("/api/puzzles/:id", (req, res) => {
-    const id = req.params.id;
-    let puzzle: any = undefined;
-    try {
-        puzzle = JSON.parse(
-            fs.readFileSync(__dirname + "/puzzles/" + id + ".json").toString()
-        );
-    } catch (e) {
-        try {
-            puzzle = JSON.parse(
-                fs
-                    .readFileSync(__dirname + "/puzzles/puzzle-" + id + ".json")
-                    .toString()
-            );
-        } catch (e) {
-            return res.status(404).send({ error: "Puzzle not found" });
-        }
-    }
-    delete puzzle.solutions;
-    puzzle.id = id;
-    res.send(puzzle);
+app.post("/api/newgame", (req, res) => {
+    res.cookie("token", generateToken());
+    res.sendStatus(200);
 });
 
 app.post("/api/checkset", (req, res) => {
-    const set = req.body;
+    const set = [
+        req.data.puzzle[req.body[0]],
+        req.data.puzzle[req.body[1]],
+        req.data.puzzle[req.body[2]],
+    ];
+
     if (set.length !== 3) {
         return res.status(400).send({ error: "Invalid set length" });
     }
