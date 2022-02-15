@@ -1,20 +1,5 @@
 import fs from "fs";
 
-function savePuzzle(
-    name: string,
-    cards: number[],
-    solutions: number[][]
-): void {
-    const puzzle = {
-        cards,
-        solutions,
-    };
-    fs.writeFileSync(
-        __dirname + `/puzzles/${name}.json`,
-        JSON.stringify(puzzle)
-    );
-}
-
 function allSame(set: number[]): boolean {
     return set.every((x) => x === set[0]);
 }
@@ -73,19 +58,6 @@ function solvePuzzle(puzzle: number[]): number[][] {
     return solutions;
 }
 
-function generateNumber(): string {
-    let valid = false;
-    let num = "0";
-    while (!valid) {
-        num = Math.floor(Math.random() * 1000000).toLocaleString("en-US", {
-            minimumIntegerDigits: 6,
-            useGrouping: false,
-        });
-        valid = !fs.existsSync(__dirname + `/puzzles/${num}.json`);
-    }
-    return num;
-}
-
 function generatePuzzle(name: string | null | undefined = undefined): number[] {
     let valid = false;
     let cards: number[] = [];
@@ -119,7 +91,6 @@ function indexOfList(list: number[][], value: number[]): number {
 }
 
 export {
-    savePuzzle,
     allSame,
     generatePuzzle,
     allDifferent,

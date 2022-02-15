@@ -6,7 +6,11 @@ export default function scrape() {
         request(
             `https://www.setgame.com/sites/all/modules/setgame_set/assets/images/new/${i}.png`
         )
-            .pipe(fs.createWriteStream(__dirname + `/../src/cards/${i}.png`))
+            .pipe(
+                fs.createWriteStream(
+                    __dirname + `/../src/private/cards/${i}.png`
+                )
+            )
             .on("close", () => {
                 console.log(`Downloaded image #${i}`);
             });

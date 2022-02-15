@@ -95,6 +95,11 @@ function clickCard(cardId) {
                 found.push(selected.sort());
                 localStorage.setItem("found", JSON.stringify(found));
                 updateFound();
+                if (found.length === 6) {
+                    document.querySelector("#data").value =
+                        JSON.stringify(found);
+                    document.querySelector("#data").parentElement.submit();
+                }
             } else {
                 let problems = [];
                 if (!result.colors) {

@@ -1,6 +1,5 @@
 node_modules
 .vscode
-src/puzzles/*
-src/cards/*
-!src/cards/empty.png
+src/private/cards/
+!src/private/cards/empty.png
 *.key
