@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+    font-family: "Inter", sans-serif;
+    line-height: 1.5;
+    font-weight: 800;
+    color: #000;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-sky-200 text-cyan-900 dark:bg-cyan-900 dark:text-sky-400;
+}
+
+nav a {
+    @apply hover:text-blue-600 transition-colors motion-safe:duration-200;
+}

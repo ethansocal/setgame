@@ -1,4 +1,4 @@
-import fs from "fs";
+import jwt from "@tsndr/cloudflare-worker-jwt";
 
 function allSame(set: number[]): boolean {
     return set.every((x) => x === set[0]);
@@ -8,7 +8,7 @@ function allDifferent(set: number[]): boolean {
     return set.every((x) => set.indexOf(x) === set.lastIndexOf(x));
 }
 
-function arraysEqual(a: any[], b: any[]): boolean {
+function arraysEqual(a: unknown[], b: unknown[]): boolean {
     if (a === b) return true;
     if (a == null || b == null) return false;
     if (a.length != b.length) return false;
@@ -19,7 +19,7 @@ function arraysEqual(a: any[], b: any[]): boolean {
     return true;
 }
 
-function checkSet(set: number[]): [boolean, boolean, boolean, boolean] {
+function verifySet(set: number[]): [boolean, boolean, boolean, boolean] {
     const colors = set.map((x) => Math.floor((x - 1) / 3) % 3);
     const shapes = set.map((x) => Math.floor((x - 1) / 9) % 3);
     const numbers = set.map((x) => (x - 1) % 3);
@@ -49,7 +49,7 @@ function solvePuzzle(puzzle: number[]): number[][] {
                 if (solutions.some((x) => arraysEqual(solution, x))) {
                     continue;
                 }
-                if (checkSet(solution).every((x) => x)) {
+                if (verifySet(solution).every((x) => x)) {
                     solutions.push(solution);
                 }
             }
@@ -58,7 +58,7 @@ function solvePuzzle(puzzle: number[]): number[][] {
     return solutions;
 }
 
-function generatePuzzle(name: string | null | undefined = undefined): number[] {
+function generatePuzzle(): number[] {
     let valid = false;
     let cards: number[] = [];
     let puzzle: number[] = [];
@@ -81,7 +81,7 @@ function generatePuzzle(name: string | null | undefined = undefined): number[] {
 }
 
 function indexOfList(list: number[][], value: number[]): number {
-    let len = list.length;
+    const len = list.length;
     for (let i = 0; i < len; i++) {
         if (list[i].every((x, j) => x === value[j])) {
             return i;
@@ -90,11 +90,38 @@ function indexOfList(list: number[][], value: number[]): number {
     return -1;
 }
 
+interface Token {
+    puzzle: number[];
+    time: number;
+}
+
+function readToken(token: string): Token {
+    if (token === undefined || token === null) {
+        return undefined;
+    }
+    if (!jwt.verify(token, process.env.JWT_KEY)) {
+        throw Error("Token is not valid!")
+    }
+    return jwt.decode(token) as Token;
+}
+
+async function createToken(): Promise<[string, number[], number]> {
+    const puzzle = generatePuzzle();
+    const time = Date.now();
+    return [
+        await jwt.sign({ puzzle: puzzle, time: time }, process.env.JWT_KEY),
+        puzzle,
+        time,
+    ];
+}
+
 export {
     allSame,
     generatePuzzle,
     allDifferent,
     solvePuzzle,
-    checkSet,
+    verifySet,
     indexOfList,
+    readToken,
+    createToken,
 };

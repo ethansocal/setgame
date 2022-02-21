@@ -1,14 +1,30 @@
 {
-    "compilerOptions": {
-        "esModuleInterop": true,
-        "target": "es5",
-    },
-    "files": [
-        "src/index.ts",
-        "src/setGame.ts",
-        "src/custom.d.ts"
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
     ],
-    "ts-node": {
-        "files": true
-    }    
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve"
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
