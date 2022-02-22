@@ -4,7 +4,7 @@
     "description": "",
     "main": "src/index.ts",
     "scripts": {
-        "images": "node scripts/scrapeImages.js",
+        "images": "node scripts/scrapeImages.mjs",
         "dev": "next dev",
         "build": "next build",
         "start": "next start",

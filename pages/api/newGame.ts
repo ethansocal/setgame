@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createToken } from "../../src/setGame";
+import { createToken } from "../../src/authManager";
 
-export default function newGame(req: NextApiRequest, res: NextApiResponse) {
+export default async function newGame(
+    req: NextApiRequest,
+    res: NextApiResponse
+) {
     if (req.method !== "POST") {
         return res.status(400).send("y you looking back here\n\n;(");
     }
-    res.setHeader("Set-Cookie", `token=${createToken()[0]}; Path=/`);
+    res.setHeader("Set-Cookie", `token=${(await createToken())[0]}; Path=/`);
     return res.json({ result: true });
 }

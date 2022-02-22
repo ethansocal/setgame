@@ -13,6 +13,10 @@ body {
     @apply bg-sky-200 text-cyan-900 dark:bg-cyan-900 dark:text-sky-400;
 }
 
-nav a {
+nav * {
     @apply hover:text-blue-600 transition-colors motion-safe:duration-200;
+}
+
+header * {
+    @apply m-3;
 }

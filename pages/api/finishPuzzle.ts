@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createToken, readToken, solvePuzzle } from "../../src/setGame";
+import { solvePuzzle } from "../../src/setGame";
+import { readToken, createToken } from "../../src/authManager";
 
 export default function finishPuzzle(
     req: NextApiRequest,

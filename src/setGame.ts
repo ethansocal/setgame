@@ -1,5 +1,3 @@
-import jwt from "@tsndr/cloudflare-worker-jwt";
-
 function allSame(set: number[]): boolean {
     return set.every((x) => x === set[0]);
 }
@@ -8,7 +6,7 @@ function allDifferent(set: number[]): boolean {
     return set.every((x) => set.indexOf(x) === set.lastIndexOf(x));
 }
 
-function arraysEqual(a: unknown[], b: unknown[]): boolean {
+function arraysEqual<A, B>(a: A[], b: B[] | A[]): boolean {
     if (a === b) return true;
     if (a == null || b == null) return false;
     if (a.length != b.length) return false;
@@ -90,31 +88,6 @@ function indexOfList(list: number[][], value: number[]): number {
     return -1;
 }
 
-interface Token {
-    puzzle: number[];
-    time: number;
-}
-
-function readToken(token: string): Token {
-    if (token === undefined || token === null) {
-        return undefined;
-    }
-    if (!jwt.verify(token, process.env.JWT_KEY)) {
-        throw Error("Token is not valid!")
-    }
-    return jwt.decode(token) as Token;
-}
-
-async function createToken(): Promise<[string, number[], number]> {
-    const puzzle = generatePuzzle();
-    const time = Date.now();
-    return [
-        await jwt.sign({ puzzle: puzzle, time: time }, process.env.JWT_KEY),
-        puzzle,
-        time,
-    ];
-}
-
 export {
     allSame,
     generatePuzzle,
@@ -122,6 +95,4 @@ export {
     solvePuzzle,
     verifySet,
     indexOfList,
-    readToken,
-    createToken,
 };
