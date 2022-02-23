@@ -1,7 +1,8 @@
 import { verifySet } from "../../src/setGame";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { withSentry } from "@sentry/nextjs";
 
-export default function checkSet(req: NextApiRequest, res: NextApiResponse) {
+function checkSet(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") {
         return res.status(400).send("y you looking back here\n\n;(");
     }
@@ -11,7 +12,7 @@ export default function checkSet(req: NextApiRequest, res: NextApiResponse) {
     }
     const result = verifySet(req.body);
 
-    res.json({
+    return res.json({
         result: result.every((x) => x),
         colors: result[0],
         shapes: result[1],
@@ -19,3 +20,5 @@ export default function checkSet(req: NextApiRequest, res: NextApiResponse) {
         shading: result[3],
     });
 }
+
+export default withSentry(checkSet);

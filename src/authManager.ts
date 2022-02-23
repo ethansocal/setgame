@@ -1,5 +1,6 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
 import { generatePuzzle } from "./setGame";
+import * as crypto from "crypto";
 
 interface Token {
     puzzle: number[];

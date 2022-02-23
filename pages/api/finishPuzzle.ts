@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { solvePuzzle } from "../../src/setGame";
 import { readToken, createToken } from "../../src/authManager";
+import { withSentry } from "@sentry/nextjs";
 
-export default function finishPuzzle(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+function finishPuzzle(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") {
         return res.status(400).send("y you looking back here\n\n;(");
     }
@@ -34,3 +32,5 @@ export default function finishPuzzle(
         return res.status(400).json({ result: false });
     }
 }
+
+export default withSentry(finishPuzzle);

@@ -1,3 +1,6 @@
+const MIN_SOLUTIONS = 6;
+const MAX_SOLUTIONS = 8;
+
 function allSame(set: number[]): boolean {
     return set.every((x) => x === set[0]);
 }
@@ -73,7 +76,9 @@ function generatePuzzle(): number[] {
             );
         }
         solutions = solvePuzzle(puzzle);
-        valid = solutions.length > 5;
+        valid =
+            solutions.length >= MIN_SOLUTIONS &&
+            solutions.length <= MAX_SOLUTIONS;
     }
     return puzzle;
 }
@@ -87,6 +92,17 @@ function indexOfList(list: number[][], value: number[]): number {
     }
     return -1;
 }
+const setGame = {
+    allSame,
+    generatePuzzle,
+    allDifferent,
+    solvePuzzle,
+    verifySet,
+    indexOfList,
+    MAX_SOLUTIONS,
+    MIN_SOLUTIONS,
+};
+export default setGame;
 
 export {
     allSame,
@@ -95,4 +111,6 @@ export {
     solvePuzzle,
     verifySet,
     indexOfList,
+    MAX_SOLUTIONS,
+    MIN_SOLUTIONS,
 };
