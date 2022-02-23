@@ -4,13 +4,20 @@ import PropTypes from "prop-types";
 function Timer(props) {
     const [time, setTime] = useState(0);
     function formatTime(time: number): string {
-        return new Date(time * 1000).toISOString().slice(11, -5);
+        const hours = Math.floor(time / 1000 / 60 / 60);
+        const minutes = Math.floor(time / 1000 / 60);
+        const seconds = Math.floor(time / 1000) % 60;
+        return `${
+            hours > 0 ? (hours < 10 ? "0" : "") + hours.toString() + ":" : ""
+        }${minutes < 10 ? "0" : ""}${minutes}:${
+            seconds < 10 ? "0" : ""
+        }${seconds}`;
     }
     useEffect(() => {
         setTime(Math.floor(Date.now() / 1000) - props.time);
         const interval = setInterval(() => {
-            setTime(Math.floor(Date.now() / 1000) - props.time);
-        }, 1000);
+            setTime(Math.floor(Date.now()) - props.time);
+        }, 1);
         return () => clearInterval(interval);
     }, [props.time]);
 

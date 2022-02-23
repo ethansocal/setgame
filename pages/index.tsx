@@ -36,12 +36,11 @@ export default class Index extends Component<Record<string, unknown>, State> {
             const promises = [];
             for (let i = 0; i < tempFound.length; i++) {
                 promises.push(
-                    this.fetchJson(
-                        "/api/checkSet",
-                        tempFound[i].map((i) => tempCards[i])
-                    ).then((data) => {
-                        return data.result ? tempFound[i] : null;
-                    })
+                    Index.fetchJson("/api/checkSet", tempFound[i]).then(
+                        (data) => {
+                            return data.result ? tempFound[i] : null;
+                        }
+                    )
                 );
             }
             Promise.all(promises).then((data) => {
@@ -59,6 +58,11 @@ export default class Index extends Component<Record<string, unknown>, State> {
             this.state.found.length > 0
         ) {
             localStorage.setItem("found", JSON.stringify(this.state.found));
+            if (this.state.found.length === 6) {
+                Index.fetchJson("/api/finishPuzzle", this.state.found).then(
+                    (data) => {}
+                );
+            }
         }
         if (
             this.state.notification !== prevState.notification &&
@@ -72,24 +76,15 @@ export default class Index extends Component<Record<string, unknown>, State> {
         }
         if (prevState.selected !== this.state.selected) {
             const selected = this.state.selected
-                .map((x, i) => {
-                    if (!x) {
-                        return null;
-                    } else {
-                        return this.state.cards[i];
-                    }
-                })
+                .map((x, index) => (x ? index : null))
                 .filter((x) => x !== null)
                 .sort();
             if (selected.length === 3) {
-                this.fetchJson("/api/checkSet", selected).then((data) => {
+                Index.fetchJson("/api/checkSet", selected).then((data) => {
                     if (data.result) {
                         if (
                             !this.state.found.some((f) =>
-                                Index.arraysEqual(
-                                    f.map((x) => this.state.cards[x]),
-                                    selected
-                                )
+                                Index.arraysEqual(f.sort(), selected)
                             )
                         ) {
                             this.sendNotification("Congrats! You found a set.");
@@ -104,18 +99,16 @@ export default class Index extends Component<Record<string, unknown>, State> {
                     } else {
                         this.sendNotification("Sorry, that's not a set.");
                     }
-                    setTimeout(
-                        () =>
-                            this.setState({ selected: Array(12).fill(false) }),
-                        300
-                    );
+                    setTimeout(() => {
+                        this.setState({ selected: Array(12).fill(false) });
+                    }, 300);
                 });
             }
         }
     }
 
     // Functions
-    async fetchJson(
+    static async fetchJson(
         url: string,
         body: unknown[] | { [key: string]: unknown },
         method = "POST"
@@ -200,7 +193,7 @@ export default class Index extends Component<Record<string, unknown>, State> {
                 />
                 <div
                     className={
-                        "rounded-lg border border-green-800 p-3 backdrop-blur-sm fixed top-10 left-2 right-2 bg-green-500/75 motion-safe:transition-all duration-1000" +
+                        "rounded-lg border border-green-800 p-3 backdrop-blur-sm fixed top-10 left-2 right-2 bg-green-500/75 motion-safe:transition-all duration-1000 z-10" +
                         (this.state.notification === "" ? " hidden" : "")
                     }
                 >

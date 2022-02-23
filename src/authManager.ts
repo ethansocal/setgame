@@ -23,7 +23,7 @@ function readToken(token: string): Token | undefined {
 
 async function createToken(): Promise<[string, number[], number]> {
     const puzzle = generatePuzzle();
-    const time = Math.floor(Date.now() / 1000);
+    const time = Date.now();
     return [
         await jwt.sign({ puzzle: puzzle, time: time }, process.env.JWT_KEY),
         puzzle,

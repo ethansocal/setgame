@@ -8,7 +8,9 @@ function finishPuzzle(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400).send("y you looking back here\n\n;(");
     }
     const data = readToken(req.cookies.token);
-    const userSolutions = JSON.parse(req.body);
+    const userSolutions = JSON.parse(
+        req.body.map((x) => x.map((i) => data.puzzle[i]))
+    );
     const solutions = solvePuzzle(data.puzzle);
     if (userSolutions.length !== 6) {
         res.status(400).send("Must have 6 solutions.");
