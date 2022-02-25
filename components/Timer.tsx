@@ -5,7 +5,7 @@ function Timer(props) {
     const [time, setTime] = useState(0);
     function formatTime(time: number): string {
         const hours = Math.floor(time / 1000 / 60 / 60);
-        const minutes = Math.floor(time / 1000 / 60);
+        const minutes = Math.floor(time / 1000 / 60) % 60;
         const seconds = Math.floor(time / 1000) % 60;
         return `${
             hours > 0 ? (hours < 10 ? "0" : "") + hours.toString() + ":" : ""

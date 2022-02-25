@@ -2,6 +2,8 @@ import Card from "../components/Card";
 import Completed from "../components/Completed";
 import { Component } from "react";
 import Navbar from "../components/Navbar";
+import { Backdrop } from "@mui/material";
+import CompletedModal from "../components/CompletedModal";
 
 interface State {
     cards: number[];
@@ -9,6 +11,7 @@ interface State {
     found: number[][];
     notification: string;
     time: number;
+    win: boolean;
 }
 
 export default class Index extends Component<Record<string, unknown>, State> {
@@ -20,6 +23,7 @@ export default class Index extends Component<Record<string, unknown>, State> {
             found: [] as number[][],
             notification: "",
             time: 0,
+            win: false,
         };
     }
 
@@ -60,7 +64,13 @@ export default class Index extends Component<Record<string, unknown>, State> {
             localStorage.setItem("found", JSON.stringify(this.state.found));
             if (this.state.found.length === 6) {
                 Index.fetchJson("/api/finishPuzzle", this.state.found).then(
-                    (data) => {}
+                    (data) => {
+                        if (data.result) {
+                            this.setState({
+                                win: true,
+                            });
+                        }
+                    }
                 );
             }
         }
@@ -258,6 +268,17 @@ export default class Index extends Component<Record<string, unknown>, State> {
                         </div>
                     </div>
                 </div>
+                <button onClick={() => this.setState({ win: true })}>
+                    win
+                </button>
+                <Backdrop
+                    open={this.state.win}
+                    onClick={() => this.setState({ win: false })}
+                >
+                    <CompletedModal
+                        hideModal={() => this.setState({ win: false })}
+                    ></CompletedModal>
+                </Backdrop>
             </>
         );
     }

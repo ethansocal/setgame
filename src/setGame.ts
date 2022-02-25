@@ -9,7 +9,7 @@ function allDifferent(set: number[]): boolean {
     return set.every((x) => set.indexOf(x) === set.lastIndexOf(x));
 }
 
-function arraysEqual<A, B>(a: A[], b: B[] | A[]): boolean {
+function arraysEqual<A>(a: A[], b: A[]): boolean {
     if (a === b) return true;
     if (a == null || b == null) return false;
     if (a.length != b.length) return false;
