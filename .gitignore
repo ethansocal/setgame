@@ -1,5 +1,4 @@
-public/card/
-!public/card/empty.png
+src/cards/*
 *.key
 .vscode/
 .idea/

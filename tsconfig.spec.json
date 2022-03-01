@@ -15,7 +15,7 @@
         "isolatedModules": true,
         "jsx": "preserve",
         "typeRoots": ["./typings"],
-        "types": ["node", "react", "cookie-parser", "express"]
+        "types": ["node", "jest", "react", "cookie-parser", "express"]
     },
     "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
     "exclude": ["node_modules"]

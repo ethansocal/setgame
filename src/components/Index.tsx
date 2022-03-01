@@ -1,62 +1,71 @@
-import Card from "../components/Card";
-import Completed from "../components/Completed";
+import Card from "./Card";
+import Completed from "./Completed";
 import { Component } from "react";
-import Navbar from "../components/Navbar";
+import Navbar from "./Navbar";
 import { Backdrop } from "@mui/material";
-import CompletedModal from "../components/CompletedModal";
+import CompletedModal from "./CompletedModal";
+import AdminView from "./AdminView";
 
 interface State {
-    cards: number[];
     selected: boolean[];
     found: number[][];
     notification: string;
-    time: number;
     win: boolean;
+    time: number;
+    cards: number[];
+    winTime: number;
 }
 
-export default class Index extends Component<Record<string, unknown>, State> {
-    constructor(props) {
+export default class Index extends Component<null, State> {
+    constructor(props: null) {
         super(props);
         this.state = {
-            cards: Array(12).fill(0),
             selected: Array(12).fill(false) as boolean[],
             found: [] as number[][],
             notification: "",
-            time: 0,
             win: false,
+            time: 0,
+            cards: Array(12).fill(0) as number[],
+            winTime: 0,
         };
     }
 
-    componentDidMount() {
-        const data = JSON.parse(
-            window.atob(Index.getCookie("token").split(".")[1])
-        );
-        const tempCards = data.puzzle;
-        this.setState({ cards: tempCards, time: data.time });
-        if (localStorage.getItem("found") !== null) {
-            const tempFound: number[][] = JSON.parse(
-                localStorage.getItem("found")
-            );
-            const promises = [];
-            for (let i = 0; i < tempFound.length; i++) {
-                promises.push(
-                    Index.fetchJson("/api/checkSet", tempFound[i]).then(
-                        (data) => {
-                            return data.result ? tempFound[i] : null;
-                        }
-                    )
+    componentDidMount(): void {
+        Index.fetchJson("/api/current", {}, "GET").then((data) => {
+            this.setState({ cards: data.puzzle, time: data.time });
+            if (localStorage.getItem("found") !== null) {
+                const tempFound: number[][] = JSON.parse(
+                    localStorage.getItem("found")
                 );
-            }
-            Promise.all(promises).then((data) => {
-                data = data.filter((x) => x !== null);
-                this.setState({
-                    found: Index.removeDuplicateArraysFromArray(data),
+                const foundPromises = [];
+                for (let i = 0; i < tempFound.length; i++) {
+                    foundPromises.push(
+                        Index.fetchJson(
+                            "/api/checkSet",
+                            tempFound[i].map((x) => data.puzzle[x])
+                        ).then((data) => {
+                            return data.valid ? tempFound[i] : null;
+                        })
+                    );
+                }
+                Promise.all(foundPromises).then((data) => {
+                    data = data.filter((x) => x !== null);
+                    this.setState({
+                        found: Index.removeDuplicateArraysFromArray(data),
+                    });
+
+                    localStorage.setItem(
+                        "found",
+                        JSON.stringify(
+                            Index.removeDuplicateArraysFromArray(data)
+                        )
+                    );
                 });
-            });
-        }
+            }
+        });
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(_prevProps, prevState) {
         if (
             this.state.found !== prevState.found &&
             this.state.found.length > 0
@@ -68,6 +77,7 @@ export default class Index extends Component<Record<string, unknown>, State> {
                         if (data.result) {
                             this.setState({
                                 win: true,
+                                winTime: data.time,
                             });
                         }
                     }
@@ -88,13 +98,20 @@ export default class Index extends Component<Record<string, unknown>, State> {
             const selected = this.state.selected
                 .map((x, index) => (x ? index : null))
                 .filter((x) => x !== null)
-                .sort();
+                .sort(Index.compare);
             if (selected.length === 3) {
-                Index.fetchJson("/api/checkSet", selected).then((data) => {
-                    if (data.result) {
+                Index.fetchJson(
+                    "/api/checkSet",
+                    selected.map((x) => this.state.cards[x])
+                ).then((data) => {
+                    console.log(data);
+                    if (data.valid) {
                         if (
                             !this.state.found.some((f) =>
-                                Index.arraysEqual(f.sort(), selected)
+                                Index.arraysEqual(
+                                    f.sort(Index.compare),
+                                    selected
+                                )
                             )
                         ) {
                             this.sendNotification("Congrats! You found a set.");
@@ -122,9 +139,9 @@ export default class Index extends Component<Record<string, unknown>, State> {
         url: string,
         body: unknown[] | { [key: string]: unknown },
         method = "POST"
-    ): Promise<{ [key: string]: unknown }> {
+    ): Promise<{ [key: string]: any }> {
         const res = fetch(url, {
-            body: JSON.stringify(body),
+            body: method === "GET" ? null : JSON.stringify(body),
             method: method,
             headers: {
                 Accept: "application/json",
@@ -134,14 +151,42 @@ export default class Index extends Component<Record<string, unknown>, State> {
         return await (await res).json();
     }
 
-    static removeDuplicateArraysFromArray<A>(array: A[]): A[] {
+    static removeDuplicateArraysFromArray(array: number[][]): number[][] {
         const temp = [];
         for (let i = 0; i < array.length; i++) {
-            if (!temp.some((x) => this.arraysEqual(x, array[i]))) {
+            if (
+                !temp.some((x) =>
+                    this.arraysEqual(
+                        x.sort(Index.compare),
+                        array[i].sort(Index.compare)
+                    )
+                )
+            ) {
                 temp.push(array[i]);
             }
         }
         return temp;
+    }
+
+    static compare(a: number, b: number): number {
+        if (a === b) return 0;
+
+        return a < b ? -1 : 1;
+    }
+
+    static insideAnotherArray(array, target): boolean {
+        console.log(array, target);
+        for (let i = 0; i < array.length; i++) {
+            if (
+                this.arraysEqual(
+                    array[i].sort(Index.compare),
+                    target.sort(Index.compare)
+                )
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static getCookie(cname: string): string {
@@ -179,18 +224,30 @@ export default class Index extends Component<Record<string, unknown>, State> {
         this.setState({ notification: message });
     }
 
-    newGame() {
-        fetch("/api/newGame", { method: "POST" }).then(() => {
-            const data = JSON.parse(
-                window.atob(Index.getCookie("token").split(".")[1])
-            );
+    newGame(update = true) {
+        if (update) {
+            fetch("/api/newGame", { method: "POST" }).then(() => {
+                this.setState({
+                    selected: Array(12).fill(false),
+                    found: [],
+                    notification: "",
+                    win: false,
+                });
+                this.update();
+            });
+        } else {
             this.setState({
-                cards: data.puzzle,
                 selected: Array(12).fill(false),
                 found: [],
                 notification: "",
-                time: data.time,
+                win: false,
             });
+        }
+    }
+
+    update() {
+        Index.fetchJson("/api/current", {}, "GET").then((data) => {
+            this.setState({ cards: data.puzzle, time: data.time });
         });
     }
 
@@ -200,6 +257,7 @@ export default class Index extends Component<Record<string, unknown>, State> {
                 <Navbar
                     newGame={this.newGame.bind(this)}
                     time={this.state.time}
+                    timerRunning={!this.state.win}
                 />
                 <div
                     className={
@@ -268,17 +326,29 @@ export default class Index extends Component<Record<string, unknown>, State> {
                         </div>
                     </div>
                 </div>
-                <button onClick={() => this.setState({ win: true })}>
-                    win
-                </button>
                 <Backdrop
                     open={this.state.win}
-                    onClick={() => this.setState({ win: false })}
+                    onClick={() => {
+                        this.setState({ win: false });
+                        this.update();
+                    }}
                 >
                     <CompletedModal
-                        hideModal={() => this.setState({ win: false })}
-                    ></CompletedModal>
+                        time={this.state.time}
+                        show={this.state.win}
+                        newGame={() => {
+                            this.update();
+                            this.setState({ win: false });
+                        }}
+                    />
                 </Backdrop>
+                <AdminView
+                    cards={this.state.cards}
+                    found={this.state.found}
+                    win={() => {
+                        this.setState({ win: true, winTime: Date.now() });
+                    }}
+                />
             </>
         );
     }

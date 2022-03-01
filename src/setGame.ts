@@ -34,6 +34,26 @@ function verifySet(set: number[]): [boolean, boolean, boolean, boolean] {
     return [colorsValid, shapesValid, numbersValid, shadingValid];
 }
 
+function parseCard(
+    card: number
+): [
+    "green" | "purple" | "red",
+    "squiggle" | "oval" | "diamond",
+    1 | 2 | 3,
+    "solid" | "striped" | "empty"
+] {
+    const color = Math.floor((card - 1) / 3) % 3;
+    const shape = Math.floor((card - 1) / 9) % 3;
+    const number = ((card - 1) % 3) + 1;
+    const shading = Math.floor((card - 1) / 27);
+    return [
+        color === 0 ? "red" : color === 1 ? "purple" : "green",
+        shape === 0 ? "squiggle" : shape === 1 ? "diamond" : "oval",
+        number as 1 | 2 | 3,
+        shading === 0 ? "solid" : shading === 1 ? "striped" : "empty",
+    ];
+}
+
 function solvePuzzle(puzzle: number[]): number[][] {
     const solutions: number[][] = [];
     for (let i = 0; i < puzzle.length; i++) {
@@ -56,7 +76,7 @@ function solvePuzzle(puzzle: number[]): number[][] {
             }
         }
     }
-    return solutions;
+    return solutions.map((x) => x.sort());
 }
 
 function generatePuzzle(): number[] {
@@ -101,6 +121,7 @@ const setGame = {
     indexOfList,
     MAX_SOLUTIONS,
     MIN_SOLUTIONS,
+    parseCard,
 };
 export default setGame;
 
@@ -113,4 +134,5 @@ export {
     indexOfList,
     MAX_SOLUTIONS,
     MIN_SOLUTIONS,
+    parseCard,
 };

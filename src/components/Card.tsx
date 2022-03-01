@@ -1,7 +1,12 @@
-import Image from "next/image";
 import PropTypes from "prop-types";
 
-function Card(props) {
+interface Props {
+    onClick: () => void;
+    card: number;
+    selected: boolean;
+}
+
+function Card(props: Props): JSX.Element {
     return (
         <div
             className={
@@ -12,9 +17,8 @@ function Card(props) {
             }
             onClick={props.onClick}
         >
-            <Image
-                src={`/card/${props.card !== 0 ? props.card : "empty"}.png`}
-                blurDataURL="true"
+            <img
+                src={`/card/${props.card !== 0 ? props.card : "empty"}.svg`}
                 width={258}
                 height={167}
                 className="m-auto"

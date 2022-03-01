@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Login</title>
+        <link rel="stylesheet" href="index.css" />
+    </head>
+    <body>
+        <div class="p-3">
+            <input type="password" id="password" />
+            <button onclick="login()">Login</button>
+            <script>
+                function login() {
+                    document.cookie = `admin=${
+                        document.getElementById("password").value
+                    }`;
+                    location.href = "/";
+                }
+                document
+                    .querySelector("input")
+                    .addEventListener("keypress", (event) => {
+                        if (event.key === "Enter") {
+                            login();
+                            event.preventDefault();
+                        }
+                    });
+                document.querySelector("input").focus;
+                document
+                    .querySelector("button")
+                    .addEventListener("click", login, false);
+            </script>
+        </div>
+    </body>
+</html>

@@ -1,9 +1,8 @@
-import fs from "fs";
-import crypto from "crypto";
+const crypto = require("crypto");
+const fs = require("fs");
+
 function generateKey(keyLength) {
     return crypto.randomBytes(keyLength).toString("hex");
 }
 
-if (require.main === module) {
-    fs.writeFileSync(__dirname + "/../jwt.key", generateKey(64));
-}
+fs.writeFileSync(__dirname + "/../cookie.key", generateKey(64));

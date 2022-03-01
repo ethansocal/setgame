@@ -1,16 +1,28 @@
+@import url("https://rsms.me/inter/inter.css");
+html {
+    font-family: "Inter", sans-serif;
+}
+@supports (font-variation-settings: normal) {
+    html {
+        font-family: "Inter var", sans-serif;
+    }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html,
 body {
+    @apply bg-sky-200 text-cyan-900 dark:bg-cyan-900 dark:text-sky-400;
+}
+
+* {
     font-family: "Inter", sans-serif;
     line-height: 1.5;
     font-weight: 800;
-    color: #000;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply bg-sky-200 text-cyan-900 dark:bg-cyan-900 dark:text-sky-400;
 }
 
 nav * {
