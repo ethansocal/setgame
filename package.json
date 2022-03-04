@@ -4,13 +4,12 @@
     "description": "",
     "scripts": {
         "images": "node scripts/scrapeImages.js",
-        "start": "ts-node src/index.ts",
+        "start": "rm -rf dist && parcel build src/pages/*.html --no-source-maps && ts-node src/index.ts",
         "test": "jest",
         "build": "parcel build src/pages/*.html --no-source-maps",
         "watch": "parcel watch src/pages/*.html",
         "lint": "eslint src",
-        "dev": "nodemon",
-        "prod": "rm -rf dist && parcel build src/pages/*.html --no-source-maps && ts-node src/index.ts"
+        "dev": "nodemon"
     },
     "keywords": [],
     "author": "",
