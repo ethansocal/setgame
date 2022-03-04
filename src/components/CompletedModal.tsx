@@ -13,11 +13,6 @@ interface State {
 export default class CompletedModal extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
-        this.state = { update: true };
-    }
-
-    shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
-        return nextProps.show;
     }
 
     formatTime(time: number): string {
@@ -34,17 +29,22 @@ export default class CompletedModal extends Component<Props, State> {
     render(): JSX.Element {
         return (
             <div
-                className="rounded-md bg-yellow-400 p-3"
+                className="rounded-md bg-yellow-500 p-3 text-green-700"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div>Congratulations! You won!</div>
+                <div className="text-3xl">Congratulations! You won!</div>
                 <div>
                     You finished in:{" "}
-                    <span className="font-serif">
+                    <span className="font-mono">
                         {this.formatTime(Date.now() - this.props.time)}
                     </span>
                 </div>
-                <button onClick={this.props.newGame}>New Game</button>
+                <button
+                    onClick={this.props.newGame}
+                    className="p-3 m-auto bg-slate-600 rounded-lg text-white"
+                >
+                    New Game
+                </button>
             </div>
         );
     }

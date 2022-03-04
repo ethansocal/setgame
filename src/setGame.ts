@@ -20,7 +20,7 @@ function arraysEqual<A>(a: A[], b: A[]): boolean {
     return true;
 }
 
-function verifySet(set: number[]): [boolean, boolean, boolean, boolean] {
+function verifySet(set: number[]): boolean {
     const colors = set.map((x) => Math.floor((x - 1) / 3) % 3);
     const shapes = set.map((x) => Math.floor((x - 1) / 9) % 3);
     const numbers = set.map((x) => (x - 1) % 3);
@@ -31,7 +31,9 @@ function verifySet(set: number[]): [boolean, boolean, boolean, boolean] {
     const numbersValid = allSame(numbers) || allDifferent(numbers);
     const shadingValid = allSame(shading) || allDifferent(shading);
 
-    return [colorsValid, shapesValid, numbersValid, shadingValid];
+    return [colorsValid, shapesValid, numbersValid, shadingValid].every(
+        (x) => x
+    );
 }
 
 function parseCard(
@@ -70,7 +72,7 @@ function solvePuzzle(puzzle: number[]): number[][] {
                 if (solutions.some((x) => arraysEqual(solution, x))) {
                     continue;
                 }
-                if (verifySet(solution).every((x) => x)) {
+                if (verifySet(solution)) {
                     solutions.push(solution);
                 }
             }
@@ -85,7 +87,10 @@ function generatePuzzle(): number[] {
     let puzzle: number[] = [];
     let solutions: number[][] = [];
 
+    let tries = 0;
+
     while (!valid) {
+        tries++;
         cards = Array.from({ length: 81 }, (x, i) => i + 1);
         puzzle = [];
         solutions = [];

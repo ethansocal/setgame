@@ -10,19 +10,19 @@ interface Props {
 function Navbar(props: Props): JSX.Element {
     return (
         <header className="flex m-auto shadow-lg flex-wrap">
-            <div className="text-[20px] underline decoration-current decoration-solid flex m-0">
-                <h3
-                    id="new-game"
-                    onClick={props.newGame}
-                    className="cursor-pointer hover:text-cyan-700 dark:hover:text-sky-600"
-                >
-                    New Puzzle
-                </h3>
-            </div>
-            <h1 className="text-center text-[40px] tracking-[0.022em] m-auto grow-[1]">
+            <h3
+                id="new-game"
+                onClick={props.newGame}
+                className="cursor-pointer hover:text-cyan-700 dark:hover:text-sky-600 text-[20px] underline decoration-current decoration-solid m-0 h-16 p-3"
+            >
+                New Puzzle
+            </h3>
+            <h1 className="text-center text-[40px] tracking-[0.022em] grow-[1] h-16 m-0">
                 Set Game!
             </h1>
-            <Timer time={props.time} running={props.timerRunning} />
+            <div className={"text-[20px] w-32 text-right h-16 m-0 p-3"}>
+                <Timer time={props.time} running={props.timerRunning} />
+            </div>
         </header>
     );
 }

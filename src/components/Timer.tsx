@@ -1,3 +1,4 @@
+import { CircularProgress } from "@mui/material";
 import { Component } from "react";
 
 interface State {
@@ -35,7 +36,7 @@ class Timer extends Component<Props, State> {
             if (this.props.running) {
                 this.setState(() => {
                     return {
-                        time: Math.floor(Date.now()) - this.props.time,
+                        time: Date.now() - this.props.time,
                     };
                 });
             }
@@ -46,11 +47,10 @@ class Timer extends Component<Props, State> {
     }
 
     render(): JSX.Element {
-        return (
-            <div className={"text-[20px] w-32 text-right"}>
-                {Timer.formatTime(this.state.time)}
-            </div>
-        );
+        if (this.props.time === 0 || this.state.time === Date.now() - 0) {
+            return <CircularProgress thickness={10} />;
+        }
+        return <>{Timer.formatTime(this.state.time)}</>;
     }
 }
 

@@ -13,9 +13,10 @@
             <button onclick="login()">Login</button>
             <script>
                 function login() {
-                    document.cookie = `admin=${
+                    localStorage.setItem(
+                        "admin",
                         document.getElementById("password").value
-                    }`;
+                    );
                     location.href = "/";
                 }
                 document

@@ -1,15 +1,86 @@
 import express from "express";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
-import cookieParser from "cookie-parser";
+import { Server } from "socket.io";
+import { createServer } from "http";
 import fs from "fs";
-import { createToken } from "./authManager";
-import { parseCard, solvePuzzle, verifySet } from "./setGame";
+import { generatePuzzle, parseCard, solvePuzzle, verifySet } from "./setGame";
 
+const PORT = process.env.PORT || 3000;
 const app = express();
+const server = createServer(app);
+const io = new Server(server);
+
+interface Client {
+    puzzle: number[];
+    time: number;
+    selected: number[];
+    found: number[][];
+}
+
+const sockets: Record<string, Client> = {};
+io.on("connection", (socket) => {
+    sockets[socket.id] = {
+        puzzle: generatePuzzle(),
+        time: Date.now(),
+        selected: [],
+        found: [],
+    };
+    socket.emit("game", sockets[socket.id].puzzle, Date.now());
+    socket.on("newGame", () => {
+        sockets[socket.id] = {
+            puzzle: generatePuzzle(),
+            time: Date.now(),
+            selected: [],
+            found: [],
+        };
+
+        socket.emit("game", sockets[socket.id].puzzle, Date.now());
+    });
+    socket.on("selected", (card: number): void => {
+        if (card > -1) {
+            if (sockets[socket.id].found.length > 6) {
+                return;
+            }
+            sockets[socket.id].selected.push(card);
+            if (sockets[socket.id].selected.length === 3) {
+                const result =
+                    verifySet(
+                        sockets[socket.id].selected.map(
+                            (x) => sockets[socket.id].puzzle[x]
+                        )
+                    ) &&
+                    sockets[socket.id].found.every((x) => {
+                        return !arraysEqual(
+                            x.sort(),
+                            sockets[socket.id].selected.sort()
+                        );
+                    });
+                if (result) {
+                    sockets[socket.id].found.push(sockets[socket.id].selected);
+                }
+                sockets[socket.id].selected = [];
+                if (result && sockets[socket.id].found.length === 6) {
+                    socket.emit("win", sockets[socket.id].time);
+                } else {
+                    socket.emit("setResult", result);
+                }
+            }
+        } else {
+            sockets[socket.id].selected = sockets[socket.id].selected.filter(
+                (x) => x !== card * -1 - 1
+            );
+        }
+    });
+    socket.on("admin", () => {
+        socket.emit("admin", {
+            answers: solvePuzzle(sockets[socket.id].puzzle),
+        });
+    });
+});
 
 //#region Sentry
-if (!module.parent) {
+if (!module.children) {
     Sentry.init({
         dsn: "https://3a3915ba1000470b8e3bfd791d720070@o1112946.ingest.sentry.io/6232665",
         integrations: [
@@ -35,33 +106,13 @@ app.use(Sentry.Handlers.tracingHandler());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(fs.readFileSync(__dirname + "/../cookie.key").toString()));
-
-app.use((req, res, next) => {
-    let token = undefined;
-    if (req.signedCookies.token === undefined) {
-        token = createToken();
-        res.cookie("token", JSON.stringify(token), { signed: true });
-    }
-    try {
-        token = JSON.parse(req.signedCookies.token);
-        if (token.puzzle.length !== 12 || typeof token.time !== "number") {
-            throw new Error("Incorrect token");
-        }
-    } catch (e) {
-        token = createToken();
-        res.cookie("token", JSON.stringify(token), { signed: true });
-    } finally {
-        req.data = token;
-    }
-    return next();
-});
 
 app.use(
     express.static(__dirname + "/../dist", {
         extensions: ["html"],
     })
 );
+app.use(express.static(__dirname + "/public"));
 
 app.get("/card/:id", (req, res) => {
     if (req.params.id === "empty.svg" || req.params.id === "0.svg") {
@@ -115,101 +166,11 @@ app.get("/card/:id", (req, res) => {
     );
 });
 
-app.post("/api/newGame", (req, res) => {
-    res.cookie("token", createToken(), { signed: true });
-    res.sendStatus(200);
-});
-
-app.post("/api/checkSet", (req, res) => {
-    const set = req.body;
-
-    if (set.length !== 3 || set.some((x) => typeof x !== "number")) {
-        return res.status(400).send({ error: "Invalid set length" });
-    }
-    const result = verifySet(set);
-
-    res.send({
-        valid: result.every((x) => x),
-        colors: result[0],
-        shapes: result[1],
-        numbers: result[2],
-        shading: result[3],
-    });
-});
-
-app.get("/api/current", (req, res) => {
-    res.json(req.data);
-});
-
-function arraysEqual(a, b) {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-
-    // If you don't care about the order of the elements inside
-    // the array, you should sort both arrays here.
-    // Please note that calling sort on an array will modify that array.
-    // you might want to clone your array first.
-
-    for (let i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-function compare(a, b) {
-    if (a === b) return 0;
-
-    return a < b ? -1 : 1;
-}
-function insideAnotherArray(array, target): boolean {
-    for (let i = 0; i < array.length; i++) {
-        if (arraysEqual(array[i].sort(compare), target.sort(compare))) {
-            return true;
-        }
-    }
-    return false;
-}
-
-app.post("/api/finishPuzzle", (req, res) => {
-    const userSolutions = req.body.map((x) =>
-        x.map((i) => req.data.puzzle[i]).sort(compare)
-    );
-    if (userSolutions.length !== 6) {
-        res.status(400).send("Must have 6 solutions.");
-        return;
-    }
-
-    const solutions = solvePuzzle(req.data.puzzle);
-    const found = [];
-    for (let i = 0; i < 6; i++) {
-        if (
-            insideAnotherArray(userSolutions, solutions[i]) &&
-            !insideAnotherArray(userSolutions, found)
-        ) {
-            found.push(userSolutions[i]);
-        }
-    }
-    if (found.length === 6) {
-        const time = Date.now() - req.data.time;
-        return res
-            .cookie("token", createToken(), { signed: true })
-            .json({ result: true, time: time });
-    } else {
-        return res.status(400).json({ result: false });
-    }
-});
-
-app.get("/api/admin", (req, res) => {
-    if (!(req.cookies.admin === "supersecretadminpassword")) {
-        res.sendStatus(403);
-    }
-    res.json({ answers: solvePuzzle(req.data.puzzle) });
-});
-
 //#region Sentry
 
 app.use(Sentry.Handlers.errorHandler());
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use(function onError(err, _req, res, _next) {
     // The error id is attached to `res.sentry` to be returned
     // and optionally displayed to the user for support.
@@ -219,8 +180,19 @@ app.use(function onError(err, _req, res, _next) {
 });
 //#endregion
 
+function arraysEqual(a: unknown[], b: unknown[]): boolean {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 if (!module.parent) {
-    app.listen(3000, () => {
+    server.listen(PORT, () => {
         console.log("Running");
     });
 }

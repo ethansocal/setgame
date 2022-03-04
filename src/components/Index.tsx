@@ -1,259 +1,112 @@
 import Card from "./Card";
 import Completed from "./Completed";
-import { Component } from "react";
+import React, { Component } from "react";
 import Navbar from "./Navbar";
 import { Backdrop } from "@mui/material";
 import CompletedModal from "./CompletedModal";
+import { io } from "socket.io-client";
+import type { Socket } from "socket.io-client";
+import LoadingScreen from "./LoadingScreen";
 import AdminView from "./AdminView";
 
 interface State {
-    selected: boolean[];
+    selected: number[];
     found: number[][];
     notification: string;
     win: boolean;
     time: number;
     cards: number[];
     winTime: number;
+    loading: boolean;
 }
 
-export default class Index extends Component<null, State> {
+class Index extends Component<null, State> {
+    socket: Socket | undefined = undefined;
     constructor(props: null) {
         super(props);
         this.state = {
-            selected: Array(12).fill(false) as boolean[],
+            selected: [] as number[],
             found: [] as number[][],
             notification: "",
             win: false,
             time: 0,
             cards: Array(12).fill(0) as number[],
             winTime: 0,
+            loading: true,
         };
-    }
+        this.socket = io({ transports: ["websocket"] });
 
-    componentDidMount(): void {
-        Index.fetchJson("/api/current", {}, "GET").then((data) => {
-            this.setState({ cards: data.puzzle, time: data.time });
-            if (localStorage.getItem("found") !== null) {
-                const tempFound: number[][] = JSON.parse(
-                    localStorage.getItem("found")
-                );
-                const foundPromises = [];
-                for (let i = 0; i < tempFound.length; i++) {
-                    foundPromises.push(
-                        Index.fetchJson(
-                            "/api/checkSet",
-                            tempFound[i].map((x) => data.puzzle[x])
-                        ).then((data) => {
-                            return data.valid ? tempFound[i] : null;
-                        })
-                    );
-                }
-                Promise.all(foundPromises).then((data) => {
-                    data = data.filter((x) => x !== null);
+        this.socket.on("game", (puzzle: number[], time: number) => {
+            this.setState({ cards: puzzle, time: time, loading: false });
+        });
+
+        this.socket.on("setResult", (result: boolean) => {
+            if (result) {
+                this.setState({
+                    found: this.state.found.concat([
+                        this.state.selected.sort(),
+                    ]),
+                });
+                this.sendNotification("Congrats! You found a set.");
+            } else {
+                this.sendNotification("Sorry, you didn't find a set.");
+            }
+            setTimeout(
+                () =>
                     this.setState({
-                        found: Index.removeDuplicateArraysFromArray(data),
-                    });
-
-                    localStorage.setItem(
-                        "found",
-                        JSON.stringify(
-                            Index.removeDuplicateArraysFromArray(data)
-                        )
-                    );
-                });
-            }
+                        selected: [],
+                    }),
+                300
+            );
         });
-    }
-
-    componentDidUpdate(_prevProps, prevState) {
-        if (
-            this.state.found !== prevState.found &&
-            this.state.found.length > 0
-        ) {
-            localStorage.setItem("found", JSON.stringify(this.state.found));
-            if (this.state.found.length === 6) {
-                Index.fetchJson("/api/finishPuzzle", this.state.found).then(
-                    (data) => {
-                        if (data.result) {
-                            this.setState({
-                                win: true,
-                                winTime: data.time,
-                            });
-                        }
-                    }
-                );
-            }
-        }
-        if (
-            this.state.notification !== prevState.notification &&
-            this.state.notification !== ""
-        ) {
-            setTimeout(() => {
-                if (this.state.notification !== prevState.notification)
-                    this.setState({ notification: "" });
-                console.log(this.state.notification);
-            }, 3000);
-        }
-        if (prevState.selected !== this.state.selected) {
-            const selected = this.state.selected
-                .map((x, index) => (x ? index : null))
-                .filter((x) => x !== null)
-                .sort(Index.compare);
-            if (selected.length === 3) {
-                Index.fetchJson(
-                    "/api/checkSet",
-                    selected.map((x) => this.state.cards[x])
-                ).then((data) => {
-                    console.log(data);
-                    if (data.valid) {
-                        if (
-                            !this.state.found.some((f) =>
-                                Index.arraysEqual(
-                                    f.sort(Index.compare),
-                                    selected
-                                )
-                            )
-                        ) {
-                            this.sendNotification("Congrats! You found a set.");
-                            this.setState({
-                                found: this.state.found.concat([selected]),
-                            });
-                        } else {
-                            this.sendNotification(
-                                "Sorry, you already found that set."
-                            );
-                        }
-                    } else {
-                        this.sendNotification("Sorry, that's not a set.");
-                    }
-                    setTimeout(() => {
-                        this.setState({ selected: Array(12).fill(false) });
-                    }, 300);
-                });
-            }
-        }
-    }
-
-    // Functions
-    static async fetchJson(
-        url: string,
-        body: unknown[] | { [key: string]: unknown },
-        method = "POST"
-    ): Promise<{ [key: string]: any }> {
-        const res = fetch(url, {
-            body: method === "GET" ? null : JSON.stringify(body),
-            method: method,
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
+        this.socket.on("win", (time: number) => {
+            this.setState({
+                found: this.state.found.concat([this.state.selected]),
+                selected: [],
+                win: true,
+                winTime: time,
+            });
         });
-        return await (await res).json();
-    }
-
-    static removeDuplicateArraysFromArray(array: number[][]): number[][] {
-        const temp = [];
-        for (let i = 0; i < array.length; i++) {
-            if (
-                !temp.some((x) =>
-                    this.arraysEqual(
-                        x.sort(Index.compare),
-                        array[i].sort(Index.compare)
-                    )
-                )
-            ) {
-                temp.push(array[i]);
-            }
-        }
-        return temp;
-    }
-
-    static compare(a: number, b: number): number {
-        if (a === b) return 0;
-
-        return a < b ? -1 : 1;
-    }
-
-    static insideAnotherArray(array, target): boolean {
-        console.log(array, target);
-        for (let i = 0; i < array.length; i++) {
-            if (
-                this.arraysEqual(
-                    array[i].sort(Index.compare),
-                    target.sort(Index.compare)
-                )
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    static getCookie(cname: string): string {
-        const name = cname + "=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == " ") {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) == 0) {
-                return c.substring(name.length, c.length);
-            }
-        }
-        return "";
-    }
-    static arraysEqual(a, b) {
-        if (a === b) return true;
-        if (a == null || b == null) return false;
-        if (a.length !== b.length) return false;
-
-        // If you don't care about the order of the elements inside
-        // the array, you should sort both arrays here.
-        // Please note that calling sort on an array will modify that array.
-        // you might want to clone your array first.
-
-        for (let i = 0; i < a.length; ++i) {
-            if (a[i] !== b[i]) return false;
-        }
-        return true;
     }
 
     sendNotification(message: string) {
         this.setState({ notification: message });
+        setTimeout(() => {
+            this.setState((prevState) => {
+                return {
+                    notification:
+                        prevState.notification === message
+                            ? ""
+                            : prevState.notification,
+                };
+            });
+        }, 3000);
     }
 
-    newGame(update = true) {
-        if (update) {
-            fetch("/api/newGame", { method: "POST" }).then(() => {
-                this.setState({
-                    selected: Array(12).fill(false),
-                    found: [],
-                    notification: "",
-                    win: false,
-                });
-                this.update();
-            });
-        } else {
-            this.setState({
-                selected: Array(12).fill(false),
-                found: [],
-                notification: "",
-                win: false,
-            });
-        }
-    }
-
-    update() {
-        Index.fetchJson("/api/current", {}, "GET").then((data) => {
-            this.setState({ cards: data.puzzle, time: data.time });
+    newGame() {
+        this.socket.emit("newGame");
+        this.setState({
+            loading: true,
+            found: [],
+            selected: [],
+            win: false,
+            time: 0,
+            cards: Array(12).fill(0) as number[],
+            winTime: 0,
         });
+    }
+
+    componentDidUpdate(_prevProps: null, prevState: Readonly<State>): void {
+        if (prevState.loading !== this.state.loading) {
+            document.body.style.overflow = this.state.loading
+                ? "hidden"
+                : "auto";
+        }
     }
 
     render() {
         return (
-            <>
+            <div className={"" + this.state.loading ? " overflow-hidden" : ""}>
                 <Navbar
                     newGame={this.newGame.bind(this)}
                     time={this.state.time}
@@ -276,20 +129,33 @@ export default class Index extends Component<null, State> {
                             <Card
                                 card={card}
                                 key={index}
-                                selected={this.state.selected[index]}
-                                onClick={() =>
-                                    this.setState({
-                                        selected: this.state.selected.map(
-                                            (x, i) => {
-                                                if (index === i) {
-                                                    return !x;
-                                                } else {
-                                                    return x;
-                                                }
-                                            }
-                                        ),
-                                    })
-                                }
+                                selected={this.state.selected.includes(index)}
+                                onClick={() => {
+                                    this.setState((prevState) => {
+                                        if (
+                                            !prevState.selected.includes(index)
+                                        ) {
+                                            this.socket.emit("selected", index);
+                                            return {
+                                                selected:
+                                                    prevState.selected.concat(
+                                                        index
+                                                    ),
+                                            };
+                                        } else {
+                                            this.socket.emit(
+                                                "selected",
+                                                index * -1 - 1
+                                            );
+                                            return {
+                                                selected:
+                                                    prevState.selected.filter(
+                                                        (i) => i !== index
+                                                    ),
+                                            };
+                                        }
+                                    });
+                                }}
                             />
                         ))}
                     </div>
@@ -326,30 +192,29 @@ export default class Index extends Component<null, State> {
                         </div>
                     </div>
                 </div>
+                <AdminView
+                    win={() =>
+                        this.setState({ win: true, winTime: Date.now() })
+                    }
+                    found={this.state.found}
+                    cards={this.state.cards}
+                    load={() => this.setState({ loading: true })}
+                    socket={this.socket}
+                />
                 <Backdrop
                     open={this.state.win}
-                    onClick={() => {
-                        this.setState({ win: false });
-                        this.update();
-                    }}
+                    onClick={this.newGame.bind(this)}
                 >
                     <CompletedModal
-                        time={this.state.time}
+                        time={this.state.winTime}
                         show={this.state.win}
-                        newGame={() => {
-                            this.update();
-                            this.setState({ win: false });
-                        }}
+                        newGame={this.newGame.bind(this)}
                     />
                 </Backdrop>
-                <AdminView
-                    cards={this.state.cards}
-                    found={this.state.found}
-                    win={() => {
-                        this.setState({ win: true, winTime: Date.now() });
-                    }}
-                />
-            </>
+                <LoadingScreen active={this.state.loading} />
+            </div>
         );
     }
 }
+
+export default Index;
