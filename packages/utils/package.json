@@ -1,0 +1,14 @@
+{
+  "name": "eslint-config-custom",
+  "version": "0.0.0",
+  "main": "setGame.ts",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "./setgame.ts"
+  ]
+}
