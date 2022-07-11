@@ -1,4 +1,5 @@
 import * as React from "react";
+import CardImg from "./CardImg";
 
 function Card({
     selected,
@@ -19,8 +20,8 @@ function Card({
             }
             onClick={onClick}
         >
-            <img
-                src={`/cards/card_${card !== 0 ? card : "empty"}.svg`}
+            <CardImg
+                card={card}
                 width={258}
                 height={167}
                 className="m-auto"

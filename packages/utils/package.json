@@ -1,14 +1,22 @@
 {
-  "name": "eslint-config-custom",
-  "version": "0.0.0",
-  "main": "setGame.ts",
-  "license": "MIT",
-  "dependencies": {
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "./setgame.ts"
-  ]
+    "name": "utils",
+    "version": "0.0.0",
+    "main": "index.ts",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "dev": "nodemon"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "types": "./lib/index.d.ts",
+    "files": [
+        "./lib"
+    ],
+    "devDependencies": {
+        "nodemon": "^2.0.19",
+        "typescript": "^4.7.4"
+    }
 }

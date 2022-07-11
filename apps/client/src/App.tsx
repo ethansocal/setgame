@@ -6,7 +6,7 @@ export default function App() {
     const [foundSets, setFoundSets] = useState<number[][]>([]);
 
     return (
-        <div className={"max-w-5xl mx-auto px-3"}>
+        <div className={"max-w-7xl mx-auto px-3"}>
             <Game
                 cards={Array(12)
                     .fill(0)

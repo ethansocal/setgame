@@ -1,24 +1,16 @@
-import PropTypes from "prop-types";
+import CardImg from "./CardImg";
 
-interface Props {
-    card: number;
-}
-
-function Completed(props: Props): JSX.Element {
+function Completed({ card }: { card: number }) {
     return (
-        <div className="border-2 border-black bg-white">
-            <img
-                src={`/card/${props.card !== 0 ? props.card : "empty"}.svg`}
+        <div className="md:border-2 border border-black bg-white">
+            <CardImg
+                card={card}
                 width={258}
                 height={167}
-                className="m-auto p-0 w-[100%] h-12 object-cover"
-                alt=""
+                className="m-auto p-0 w-[100%] md:h-12 h-8 object-cover"
             />
         </div>
     );
 }
 
-Completed.propTypes = {
-    card: PropTypes.number.isRequired,
-};
 export default Completed;
