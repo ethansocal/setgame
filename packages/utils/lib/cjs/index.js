@@ -1,51 +1,43 @@
-import * as utils from "./index.js";
-
-export const MIN_SOLUTIONS = 6;
-export const MAX_SOLUTIONS = 8;
-
-export function allSame(set: number[]): boolean {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateCard = exports.TEMPLATE = exports.indexOfList = exports.generatePuzzle = exports.solvePuzzle = exports.parseCard = exports.verifySet = exports.arraysEqual = exports.allDifferent = exports.allSame = exports.MAX_SOLUTIONS = exports.MIN_SOLUTIONS = void 0;
+exports.MIN_SOLUTIONS = 6;
+exports.MAX_SOLUTIONS = 8;
+function allSame(set) {
     return set.every((x) => x === set[0]);
 }
-
-export function allDifferent(set: number[]): boolean {
+exports.allSame = allSame;
+function allDifferent(set) {
     return set.every((x) => set.indexOf(x) === set.lastIndexOf(x));
 }
-
-export function arraysEqual<T>(a: T[], b: T[]): boolean {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-
+exports.allDifferent = allDifferent;
+function arraysEqual(a, b) {
+    if (a === b)
+        return true;
+    if (a == null || b == null)
+        return false;
+    if (a.length !== b.length)
+        return false;
     for (let i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) return false;
+        if (a[i] !== b[i])
+            return false;
     }
     return true;
 }
-
-export function verifySet(set: number[]): boolean {
+exports.arraysEqual = arraysEqual;
+function verifySet(set) {
     const colors = set.map((x) => Math.floor((x - 1) / 3) % 3);
     const shapes = set.map((x) => Math.floor((x - 1) / 9) % 3);
     const numbers = set.map((x) => (x - 1) % 3);
     const shading = set.map((x) => Math.floor((x - 1) / 27));
-
     const colorsValid = allSame(colors) || allDifferent(colors);
     const shapesValid = allSame(shapes) || allDifferent(shapes);
     const numbersValid = allSame(numbers) || allDifferent(numbers);
     const shadingValid = allSame(shading) || allDifferent(shading);
-
-    return [colorsValid, shapesValid, numbersValid, shadingValid].every(
-        (x) => x
-    );
+    return [colorsValid, shapesValid, numbersValid, shadingValid].every((x) => x);
 }
-
-export function parseCard(
-    card: number
-): [
-    "green" | "purple" | "red",
-    "squiggle" | "oval" | "diamond",
-    1 | 2 | 3,
-    "solid" | "striped" | "empty"
-] {
+exports.verifySet = verifySet;
+function parseCard(card) {
     const color = Math.floor((card - 1) / 3) % 3;
     const shape = Math.floor((card - 1) / 9) % 3;
     const number = ((card - 1) % 3) + 1;
@@ -53,13 +45,13 @@ export function parseCard(
     return [
         color === 0 ? "red" : color === 1 ? "purple" : "green",
         shape === 0 ? "squiggle" : shape === 1 ? "diamond" : "oval",
-        number as 1 | 2 | 3,
+        number,
         shading === 0 ? "solid" : shading === 1 ? "striped" : "empty",
     ];
 }
-
-export function solvePuzzle(puzzle: number[]): number[][] {
-    const solutions: number[][] = [];
+exports.parseCard = parseCard;
+function solvePuzzle(puzzle) {
+    const solutions = [];
     for (let i = 0; i < puzzle.length; i++) {
         for (let j = 0; j < puzzle.length; j++) {
             if (i === j) {
@@ -69,7 +61,7 @@ export function solvePuzzle(puzzle: number[]): number[][] {
                 if (i === k || j === k) {
                     continue;
                 }
-                let solution: number[] = [puzzle[i]!, puzzle[j]!, puzzle[k]!];
+                let solution = [puzzle[i], puzzle[j], puzzle[k]];
                 solution = solution.sort();
                 if (solutions.some((x) => arraysEqual(solution, x))) {
                     continue;
@@ -82,41 +74,38 @@ export function solvePuzzle(puzzle: number[]): number[][] {
     }
     return solutions.map((x) => x.sort());
 }
-
-export function generatePuzzle(): number[] {
+exports.solvePuzzle = solvePuzzle;
+function generatePuzzle() {
     let valid = false;
     let cards = [];
-    let puzzle: number[] = [];
+    let puzzle = [];
     let solutions = [];
-
     while (!valid) {
         cards = Array.from({ length: 81 }, (_, i) => i + 1);
         puzzle = [];
         solutions = [];
-
         for (let i = 0; i < 12; i++) {
-            puzzle.push(
-                cards.splice(Math.floor(Math.random() * cards.length), 1)[0]!
-            );
+            puzzle.push(cards.splice(Math.floor(Math.random() * cards.length), 1)[0]);
         }
         solutions = solvePuzzle(puzzle);
         valid =
-            solutions.length >= MIN_SOLUTIONS &&
-            solutions.length <= MAX_SOLUTIONS;
+            solutions.length >= exports.MIN_SOLUTIONS &&
+                solutions.length <= exports.MAX_SOLUTIONS;
     }
-    return puzzle;
+    return [puzzle, solutions];
 }
-
-export function indexOfList(list: number[][], value: number[]): number {
+exports.generatePuzzle = generatePuzzle;
+function indexOfList(list, value) {
     const len = list.length;
     for (let i = 0; i < len; i++) {
-        if (list[i]!.every((x, j) => x === value[j])) {
+        if (list[i].every((x, j) => x === value[j])) {
             return i;
         }
     }
     return -1;
 }
-export const TEMPLATE = `
+exports.indexOfList = indexOfList;
+exports.TEMPLATE = `
 <svg width="300" height="200" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
 
     <defs>
@@ -147,12 +136,11 @@ export const TEMPLATE = `
 
 </svg>
 `;
-
-export function generateCard(cardId: number): string {
+function generateCard(cardId) {
     if (cardId === 0) {
-        return TEMPLATE;
+        return exports.TEMPLATE;
     }
-    let card = utils.parseCard(cardId);
+    let card = parseCard(cardId);
     let color = "";
     switch (card[0]) {
         case "green":
@@ -185,14 +173,8 @@ export function generateCard(cardId: number): string {
     const elements = Array(card[2])
         .fill(0)
         .map((_, index) => {
-            return element.replace(
-                "TRANSFORM",
-                `translate(${spacings[card[2]][index]},25)`
-            );
-        });
-
-    return TEMPLATE.replace("<!-- CONTENT -->", elements.join("\n\t")).replace(
-        "COLOR",
-        color
-    );
+        return element.replace("TRANSFORM", `translate(${spacings[card[2]][index]},25)`);
+    });
+    return exports.TEMPLATE.replace("<!-- CONTENT -->", elements.join("\n\t")).replace("COLOR", color);
 }
+exports.generateCard = generateCard;
