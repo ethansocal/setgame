@@ -1,5 +1,5 @@
 {
     "ext": "ts,json",
     "ignore": ["./lib/**/*"],
-    "exec": "tsc"
+    "exec": "npm run build"
 }

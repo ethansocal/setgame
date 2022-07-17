@@ -150,7 +150,7 @@ export function generateCard(cardId: number): string {
     if (cardId === 0) {
         return TEMPLATE;
     }
-    let card = utils.parseCard(cardId);
+    let card = parseCard(cardId);
     let color = "";
     switch (card[0]) {
         case "green":

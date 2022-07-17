@@ -30,14 +30,14 @@ function AdminView(props: Props): JSX.Element {
             props.socket.emit("admin", localStorage.getItem("admin"));
         }
     }, [props.cards]);
-    function arraysEqual(array1, array2): boolean {
+    function arraysEqual<T>(array1: T[], array2: T[]): boolean {
         return (
             array1.length === array2.length &&
             array1.every((value, index) => value === array2[index])
         );
     }
 
-    function insideAnotherArray(array, target): boolean {
+    function insideAnotherArray<T>(array: T[][], target: T[]): boolean {
         for (let i = 0; i < array.length; i++) {
             if (arraysEqual(array[i].sort(compare), target.sort(compare))) {
                 return true;
@@ -45,7 +45,7 @@ function AdminView(props: Props): JSX.Element {
         }
         return false;
     }
-    function compare(a: number, b: number): number {
+    function compare<T>(a: T, b: T): number {
         if (a === b) return 0;
 
         return a < b ? -1 : 1;

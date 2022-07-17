@@ -17,7 +17,7 @@ export default function Game({
             <div className={"grid grid-cols-4 grid-rows-3 gap-2 my-auto"}>
                 {cards.map((card, index) => (
                     <Card
-                        key={card}
+                        key={`${card}-${index}`}
                         card={card}
                         selected={selected.includes(index)}
                         onClick={() => {
@@ -37,7 +37,7 @@ export default function Game({
                     .fill(0)
                     .map((_, index) =>
                         (foundSets[index] || [0, 0, 0]).map((card) => (
-                            <Completed card={card} />
+                            <Completed key={index} card={card} />
                         ))
                     )}
             </div>
